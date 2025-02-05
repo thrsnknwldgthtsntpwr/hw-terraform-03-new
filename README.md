@@ -38,7 +38,7 @@
 
 
 
-`src/count-vm.tf`
+**`src/count-vm.tf`**
 ```
 resource "yandex_compute_instance" "web" {
   depends_on = [ resource.yandex_compute_instance.db ]
@@ -80,7 +80,7 @@ variable "each_vm" {
 
 
 
-`src/for_each-vm.tf`
+**`src/for_each-vm.tf`**
 ```
 resource "yandex_compute_instance" "db" {
   for_each = { for hosts in var.each_vm : hosts.vm_name => hosts }
@@ -113,7 +113,7 @@ resource "yandex_compute_instance" "db" {
 
 3. При желании внесите в переменную все возможные параметры.
 
-variables.tf
+**`src/variables.tf`**
 ```
 variable "each_vm" {
   type = list(object({
@@ -154,10 +154,10 @@ variable "each_vm" {
 }
 ```
 
-4. ВМ из пункта 2.1 должны создаваться после создания ВМ из пункта 2.2.
+4. ВМ из пункта 2.1 должны создаваться после создания ВМ из пункта 2.2.  
 `depends_on = [ resource.yandex_compute_instance.db ]`
 
-5. Используйте функцию file в local-переменной для считывания ключа ~/.ssh/id_rsa.pub и его последующего использования в блоке metadata, взятому из ДЗ 2.
+5. Используйте функцию file в local-переменной для считывания ключа ~/.ssh/id_rsa.pub и его последующего использования в блоке metadata, взятому из ДЗ 2.  
 `ssh-keys           = "${local.local_admin}:${file(local.local_admin_public_key)}"`
 
 6. Инициализируйте проект, выполните код.
