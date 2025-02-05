@@ -36,6 +36,8 @@
 
 1. Создайте файл count-vm.tf. Опишите в нём создание двух **одинаковых** ВМ  web-1 и web-2 (не web-0 и web-1) с минимальными параметрами, используя мета-аргумент **count loop**. Назначьте ВМ созданную в первом задании группу безопасности.(как это сделать узнайте в документации провайдера yandex/compute_instance )
 
+
+
 `src/count-vm.tf`
 ```
 resource "yandex_compute_instance" "web" {
@@ -75,6 +77,8 @@ variable "each_vm" {
   type = list(object({  vm_name=string, cpu=number, ram=number, disk_volume=number }))
 }
 ``` 
+
+
 
 `src/for_each-vm.tf`
 ```
