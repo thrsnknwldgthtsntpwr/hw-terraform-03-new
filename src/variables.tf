@@ -52,6 +52,16 @@ variable vms {
         platform_id = "standard-v1"
         nat = "true"
       }
+      "storj" = {
+        name = "storj"
+        cores = 2
+        ram = 1
+        core_fraction = 5
+        image = "fd833v6c5tb0udvk4jo6"
+        preemptible = "true"
+        platform_id = "standard-v1"
+        nat = "true"
+      }
     }
 }
 

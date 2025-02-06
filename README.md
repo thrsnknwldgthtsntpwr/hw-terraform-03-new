@@ -171,8 +171,54 @@ variable "each_vm" {
 
 ### Задание 3
 
-1. Создайте 3 одинаковых виртуальных диска размером 1 Гб с помощью ресурса yandex_compute_disk и мета-аргумента count в файле **disk_vm.tf** .
+1. Создайте 3 одинаковых виртуальных диска размером 1 Гб с помощью ресурса yandex_compute_disk и мета-аргумента count в файле **disk_vm.tf** .  
+```
+resource "yandex_compute_disk" "hdd" {
+  count = 3
+  name  = "disk-${count.index}"
+  type = "network-hdd"
+  size = 1
+}
+```
+
 2. Создайте в том же файле **одиночную**(использовать count или for_each запрещено из-за задания №4) ВМ c именем "storage"  . Используйте блок **dynamic secondary_disk{..}** и мета-аргумент for_each для подключения созданных вами дополнительных дисков.
+
+```
+resource "yandex_compute_instance" "storj" {
+  name     = var.vms.storj.name
+  platform_id = var.vms.storj.platform_id
+  resources {
+    cores         = var.vms.storj.cores
+    memory        = var.vms.storj.ram
+    core_fraction = var.vms.storj.core_fraction
+  }
+  boot_disk {
+    initialize_params {
+      image_id = var.vms.storj.image
+    }
+  }
+  scheduling_policy {
+    preemptible = var.vms.storj.preemptible
+  }
+  network_interface {
+    subnet_id = yandex_vpc_subnet.develop.id
+    nat       = var.vms.storj.nat
+  }
+  dynamic "secondary_disk" {
+    for_each = yandex_compute_disk.hdd.*.id
+    content {
+      disk_id = secondary_disk.value
+    }
+  }
+
+  metadata = {
+    serial-port-enable = 1
+    ssh-keys           = "${local.local_admin}:${file(local.local_admin_public_key)}"
+  }
+}
+```
+
+![storj_vm_disks](img/img3.png)
 
 ------
 
