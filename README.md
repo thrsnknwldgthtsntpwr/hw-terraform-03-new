@@ -231,9 +231,48 @@ resource "yandex_compute_instance" "storj" {
 1. В файле ansible.tf создайте inventory-файл для ansible.
 Используйте функцию tepmplatefile и файл-шаблон для создания ansible inventory-файла из лекции.
 Готовый код возьмите из демонстрации к лекции [**demonstration2**](https://github.com/netology-code/ter-homeworks/tree/main/03/demo).
-Передайте в него в качестве переменных группы виртуальных машин из задания 2.1, 2.2 и 3.2, т. е. 5 ВМ.
+Передайте в него в качестве переменных группы виртуальных машин из задания 2.1, 2.2 и 3.2, т. е. 5 ВМ.  
+
+**`src/ansible.tf`**
+```
+resource "local_file" "hosts_templatefile" {
+  content = templatefile(
+    "hosts.tftpl", 
+    { 
+      group_hosts = tolist(
+        [
+          {
+            group = "webservers"
+            hosts = yandex_compute_instance.web[*]
+          },
+          {
+            group = "databases"
+            hosts = values(yandex_compute_instance.db)
+          },
+          {
+           group = "storage"
+           hosts = yandex_compute_instance.storj[*]
+          }
+      ]
+    )
+  }
+)
+  filename = "hosts"
+}
+```
 2. Инвентарь должен содержать 3 группы и быть динамическим, т. е. обработать как группу из 2-х ВМ, так и 999 ВМ.
-3. Добавьте в инвентарь переменную  [**fqdn**](https://cloud.yandex.ru/docs/compute/concepts/network#hostname).
+3. Добавьте в инвентарь переменную  [**fqdn**](https://cloud.yandex.ru/docs/compute/concepts/network#hostname).  
+
+**`hosts.tftpl`**
+```
+%{~ for g_host in group_hosts ~}
+[${g_host["group"]}]
+    %{~ for host in g_host["hosts"] ~}
+    ${host["name"]} ansible_host=${host["network_interface"][0]["nat_ip_address"]} fqdn=${host["fqdn"]}
+    %{~ endfor ~}
+%{~ endfor ~}
+```
+
 ``` 
 [webservers]
 web-1 ansible_host=<внешний ip-адрес> fqdn=<полное доменное имя виртуальной машины>
@@ -247,7 +286,21 @@ replica ansible_host<внешний ip-адрес> fqdn=<полное домен
 storage ansible_host=<внешний ip-адрес> fqdn=<полное доменное имя виртуальной машины>
 ```
 Пример fqdn: ```web1.ru-central1.internal```(в случае указания переменной hostname(не путать с переменной name)); ```fhm8k1oojmm5lie8i22a.auto.internal```(в случае отсутвия перменной hostname - автоматическая генерация имени,  зона изменяется на auto). нужную вам переменную найдите в документации провайдера или terraform console.
-4. Выполните код. Приложите скриншот получившегося файла. 
+4. Выполните код. Приложите скриншот получившегося файла.  
+
+**`src/hosts`**
+```
+[webservers]
+    web-1 ansible_host=89.169.153.251 fqdn=fhmar2rtvm4gk41amlu5.auto.internal
+    web-2 ansible_host=89.169.132.12 fqdn=fhm2pem6fd9mvqqg044h.auto.internal
+[databases]
+    main ansible_host=89.169.139.203 fqdn=fhm26s5mqi9o0dm4bik0.auto.internal
+    replica ansible_host=62.84.124.245 fqdn=fhmove6h9n328rqleuq5.auto.internal
+[storage]
+    storj ansible_host=89.169.144.146 fqdn=fhm33d27qbl6m2imf6dl.auto.internal
+```
+
+![inventory_file_img](img/img4.png)
 
 Для общего зачёта создайте в вашем GitHub-репозитории новую ветку terraform-03. Закоммитьте в эту ветку свой финальный код проекта, пришлите ссылку на коммит.   
 **Удалите все созданные ресурсы**.
